@@ -9,7 +9,7 @@
 
 class SearchAlgorithm {
 public:
-  virtual Node solve(Map *map) = 0;
+  virtual std::shared_ptr<Node> solve(Map *map) = 0;
   virtual ~SearchAlgorithm() = default;
 };
 

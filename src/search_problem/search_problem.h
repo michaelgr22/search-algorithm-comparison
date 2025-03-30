@@ -28,7 +28,9 @@ public:
   }
 
   void draw() { map->draw(); }
-  Node solve(SearchAlgorithm *algorithm) { return algorithm->solve(map.get()); }
+  std::shared_ptr<Node> solve(SearchAlgorithm *algorithm) {
+    return algorithm->solve(map.get());
+  }
 };
 
 #endif

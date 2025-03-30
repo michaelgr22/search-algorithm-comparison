@@ -10,9 +10,10 @@ int main() {
   std::unique_ptr<SearchAlgorithm> bfs =
       std::unique_ptr<SearchAlgorithm>(new BestFirstSearch());
 
-  Node goal = sp.solve(bfs.get());
+  std::shared_ptr<Node> goal = sp.solve(bfs.get());
 
-  std::cout << goal.state.x << " " << goal.state.y << std::endl;
+  std::cout << goal->parent->state.x << " " << goal->parent->state.y
+            << std::endl;
 
   /*
   for (int y = 48; y > 38; y--) {

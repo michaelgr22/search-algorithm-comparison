@@ -10,7 +10,7 @@
 
 class BestFirstSearch : public SearchAlgorithm {
 public:
-  Node solve(Map *map) override {
+  std::shared_ptr<Node> solve(Map *map) override {
     std::cout << "Solving..." << std::endl;
     auto cmp = [](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
       return a->heuristic > b->heuristic; // Min-heap (smallest distance first)
@@ -31,7 +31,7 @@ public:
 
     while (true) {
       if (frontier.empty())
-        return Node();
+        return nullptr;
 
       node = frontier.top();
       frontier.pop();
@@ -39,7 +39,7 @@ public:
                 << std::endl;
 
       if (node->state == map->get_goal())
-        return *node;
+        return node;
 
       for (const Coordinate &c : map->expand_node(node->state)) {
         std::shared_ptr<Node> child = std::make_shared<Node>();
