@@ -52,7 +52,10 @@ public:
         std::cout << "child heuristic:" << child->heuristic << std::endl;
         child->path_cost = child->parent->path_cost + 1;
 
-        auto it = std::find(reached.begin(), reached.end(), child);
+        auto it = std::find_if(
+            reached.begin(), reached.end(),
+            [&child](const std::shared_ptr<Node> &n) { return *n == *child; });
+
         // check if child exists in reached
         if (it == reached.end()) {
           reached.push_back(child);
