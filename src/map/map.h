@@ -19,8 +19,6 @@ private:
   Coordinate start;
   Coordinate goal;
 
-  sf::Color map_fieldvalue_color(FieldValue field_value);
-
 public:
   const int width;
   const int height;
@@ -30,7 +28,6 @@ public:
         goal(Coordinate(-1, -1)) {}
 
   static Map from_txt(const std::string &filename);
-  void draw();
   void set_scenario(Coordinate start, Coordinate goal);
   std::vector<Coordinate> expand_node(Coordinate node);
 

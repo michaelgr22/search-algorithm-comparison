@@ -27,7 +27,6 @@ public:
     map->set_scenario(scenario->start, scenario->goal);
   }
 
-  void draw() { map->draw(); }
   std::shared_ptr<Node> solve(SearchAlgorithm *algorithm) {
     return algorithm->solve(map.get());
   }
