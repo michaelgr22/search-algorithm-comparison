@@ -1,4 +1,5 @@
 #include "map.h"
+#include <stdexcept>
 
 // ======================[ Public Methods ]===================== //
 
@@ -8,8 +9,12 @@ void Map::set_scenario(Coordinate s, Coordinate g) {
   goal.x = g.x;
   goal.y = g.y;
 
-  layout[start.x][start.y] = START;
-  layout[goal.x][goal.y] = GOAL;
+  if (layout[start.x][start.y] == FREE && layout[goal.x][goal.y] == FREE) {
+    layout[start.x][start.y] = START;
+    layout[goal.x][goal.y] = GOAL;
+  } else {
+    throw std::runtime_error("Scenario not valid!");
+  }
 }
 
 std::vector<Coordinate> Map::expand_node(Coordinate node) {

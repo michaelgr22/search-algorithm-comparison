@@ -9,7 +9,7 @@
 int main() {
   std::string filename = "arena2";
 
-  SearchProblem sp = SearchProblem(filename, 620);
+  SearchProblem sp = SearchProblem(filename, 385);
 
   std::unique_ptr<SearchAlgorithm> bfs =
       std::unique_ptr<SearchAlgorithm>(new BestFirstSearch());
