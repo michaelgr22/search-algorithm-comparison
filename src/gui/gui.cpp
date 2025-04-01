@@ -1,7 +1,5 @@
 #include "gui.h"
 
-#include <algorithm>
-
 sf::Color Gui::map_fieldvalue_color(FieldValue field_value) {
   switch (field_value) {
   case 1:
@@ -29,21 +27,7 @@ void Gui::set_color_of_pixel(int x, int y, sf::Color color) {
   pixels[pixelIndex + 3] = color.a;
 }
 
-std::vector<std::shared_ptr<Node>>
-Gui::order_nodes_start_to_goal(std::shared_ptr<Node> goal) {
-  std::vector<std::shared_ptr<Node>> nodes;
-
-  std::shared_ptr<Node> current_node = goal;
-  while (current_node != nullptr) {
-    nodes.push_back(current_node);
-    current_node = current_node->parent;
-  }
-
-  std::reverse(nodes.begin(), nodes.end());
-  return nodes;
-}
-
-void Gui::simulate_search_path(std::shared_ptr<Node> goal) {
+void Gui::simulate_search_path() {
   for (int y = 0; y < map->height; ++y) {
     for (int x = 0; x < map->width; ++x) {
       sf::Color color = map_fieldvalue_color(map->get_layout()[x][y]);
@@ -66,10 +50,6 @@ void Gui::simulate_search_path(std::shared_ptr<Node> goal) {
   sf::Time timeSinceLastUpdate = sf::Time::Zero;     // Accumulates time
   const sf::Time timePerUpdate = sf::seconds(0.15f); // How often to update
 
-  // --- Pixel Update Tracking ---
-  int currentNodeIndex = 0;
-  std::vector<std::shared_ptr<Node>> nodes = order_nodes_start_to_goal(goal);
-
   while (window.isOpen()) {
     timeSinceLastUpdate += clock.restart();
 
@@ -78,19 +58,18 @@ void Gui::simulate_search_path(std::shared_ptr<Node> goal) {
       if (event.type == sf::Event::Closed)
         window.close();
 
-    if (timeSinceLastUpdate >= timePerUpdate &&
-        currentNodeIndex < nodes.size() - 1) {
+    if (timeSinceLastUpdate >= timePerUpdate) {
       timeSinceLastUpdate -= timePerUpdate;
 
+      std::shared_ptr<Node> node = search_algorithm->pop_node();
       sf::Color color = sf::Color::Blue;
-      set_color_of_pixel(nodes[currentNodeIndex]->state.x,
-                         nodes[currentNodeIndex]->state.y, color);
 
-      texture.update(pixels.data());
+      if (node) {
+        set_color_of_pixel(node->state.x, node->state.y, color);
 
-      currentNodeIndex++;
+        texture.update(pixels.data());
+      }
     }
-
     window.clear();
     window.draw(sprite);
     window.display();

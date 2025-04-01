@@ -2,6 +2,8 @@
 #define SEARCH_PROBLEM_H
 
 #include <memory>
+#include <mutex>
+#include <queue>
 
 #include "../map/map.h"
 #include "../scenario/scenario.h"

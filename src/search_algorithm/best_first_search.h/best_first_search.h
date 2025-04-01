@@ -9,7 +9,20 @@
 #include <vector>
 
 class BestFirstSearch : public SearchAlgorithm {
+private:
+  std::queue<std::shared_ptr<Node>> data_queue;
+  std::mutex data_queue_mutex;
+
 public:
+  std::shared_ptr<Node> pop_node() override {
+    std::lock_guard<std::mutex> lock(data_queue_mutex);
+    if (data_queue.empty())
+      return nullptr;
+    auto node = data_queue.front();
+    data_queue.pop();
+    return node;
+  }
+
   std::shared_ptr<Node> solve(Map *map) override {
     std::cout << "Solving..." << std::endl;
     auto cmp = [](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
@@ -37,6 +50,10 @@ public:
       frontier.pop();
       std::cout << "Node State:" << node->state.x << " " << node->state.y
                 << std::endl;
+
+      // for gui
+      std::lock_guard<std::mutex> lock(data_queue_mutex);
+      data_queue.push(node);
 
       if (node->state == map->get_goal())
         return node;
