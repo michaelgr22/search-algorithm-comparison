@@ -8,7 +8,7 @@
 #include <queue>
 #include <vector>
 
-class BestFirstSearch : public SearchAlgorithm {
+class AStarSearch : public SearchAlgorithm {
 private:
   std::queue<std::shared_ptr<Node>> data_queue;
   std::mutex data_queue_mutex;
@@ -25,8 +25,13 @@ public:
 
   std::shared_ptr<Node> solve(Map *map) override {
     std::cout << "Solving..." << std::endl;
-    auto cmp = [](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
+
+    /*auto cmp = [](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
       return a->heuristic > b->heuristic; // Min-heap (smallest distance first)
+    };*/
+    auto cmp = [](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
+      return (a->path_cost + a->heuristic) >
+             (b->path_cost + b->heuristic); // A*
     };
     std::priority_queue<std::shared_ptr<Node>,
                         std::vector<std::shared_ptr<Node>>, decltype(cmp)>
