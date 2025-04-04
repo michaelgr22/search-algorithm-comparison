@@ -1,19 +1,25 @@
-#ifndef BEST_FIRST_SEARCH_H
-#define BEST_FIRST_SEARCH_H
+#ifndef A_STAR_SEARCH_H
+#define A_STAR_SEARCH_H
 
+#include "../../map/map.h"
+#include "../best_first_search.h"
 #include "../node.h"
-#include "../search_algorithm.h"
 
-#include <memory>
+#include <iostream>
+#include <mutex>
 #include <queue>
 #include <vector>
 
-class AStarSearch : public SearchAlgorithm {
+class AStarSearch : public BestFirstSearch {
 private:
   std::queue<std::shared_ptr<Node>> data_queue;
   std::mutex data_queue_mutex;
 
 public:
+  double evaluation_function(std::shared_ptr<Node> node) override {
+    return (node->path_cost + node->heuristic);
+  }
+
   std::shared_ptr<Node> pop_node() override {
     std::lock_guard<std::mutex> lock(data_queue_mutex);
     if (data_queue.empty())
@@ -29,9 +35,8 @@ public:
     /*auto cmp = [](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
       return a->heuristic > b->heuristic; // Min-heap (smallest distance first)
     };*/
-    auto cmp = [](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
-      return (a->path_cost + a->heuristic) >
-             (b->path_cost + b->heuristic); // A*
+    auto cmp = [this](std::shared_ptr<Node> a, std::shared_ptr<Node> b) {
+      return evaluation_function(a) > evaluation_function(b); // A*
     };
     std::priority_queue<std::shared_ptr<Node>,
                         std::vector<std::shared_ptr<Node>>, decltype(cmp)>

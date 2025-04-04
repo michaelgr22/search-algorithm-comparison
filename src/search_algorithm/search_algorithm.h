@@ -5,8 +5,6 @@
 #include "node.h"
 
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <vector>
 
 class SearchAlgorithm {
