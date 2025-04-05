@@ -14,11 +14,14 @@ class AStarSearch : public BestFirstSearch {
 private:
   std::queue<std::shared_ptr<Node>> data_queue;
   std::mutex data_queue_mutex;
+  std::shared_ptr<Node> goal = nullptr;
 
 public:
   double evaluation_function(std::shared_ptr<Node> node) override {
     return (node->path_cost + node->heuristic);
   }
+
+  std::shared_ptr<Node> goal_node() override { return goal; }
 
   std::shared_ptr<Node> pop_node() override {
     std::lock_guard<std::mutex> lock(data_queue_mutex);
@@ -65,8 +68,10 @@ public:
       std::lock_guard<std::mutex> lock(data_queue_mutex);
       data_queue.push(node);
 
-      if (node->state == map->get_goal())
+      if (node->state == map->get_goal()) {
+        goal = node;
         return node;
+      }
 
       for (const Coordinate &c : map->expand_node(node->state)) {
         std::shared_ptr<Node> child = std::make_shared<Node>();

@@ -46,9 +46,12 @@ void Gui::simulate_search_path() {
       "Map");
 
   // --- Timing Setup ---
-  sf::Clock clock;                                   // Measures elapsed time
-  sf::Time timeSinceLastUpdate = sf::Time::Zero;     // Accumulates time
-  const sf::Time timePerUpdate = sf::seconds(0.15f); // How often to update
+  sf::Clock clock;                                    // Measures elapsed time
+  sf::Time timeSinceLastUpdate = sf::Time::Zero;      // Accumulates time
+  const sf::Time timePerUpdate = sf::seconds(0.025f); // How often to update
+
+  // needed that we know when we can show the final path
+  int search_did_not_update_counter = 0;
 
   while (window.isOpen()) {
     timeSinceLastUpdate += clock.restart();
@@ -58,6 +61,19 @@ void Gui::simulate_search_path() {
       if (event.type == sf::Event::Closed)
         window.close();
 
+    // show final path
+    std::shared_ptr<Node> goal_node = search_algorithm->goal_node();
+    if (goal_node && search_did_not_update_counter > 10) {
+      std::shared_ptr<Node> current_node = goal_node;
+      while (current_node) {
+        set_color_of_pixel(current_node->state.x, current_node->state.y,
+                           sf::Color::Red);
+        current_node = current_node->parent;
+      }
+      texture.update(pixels.data());
+    }
+
+    // show search exploration
     if (timeSinceLastUpdate >= timePerUpdate) {
       timeSinceLastUpdate -= timePerUpdate;
 
@@ -68,6 +84,8 @@ void Gui::simulate_search_path() {
         set_color_of_pixel(node->state.x, node->state.y, color);
 
         texture.update(pixels.data());
+      } else {
+        search_did_not_update_counter++;
       }
     }
     window.clear();
