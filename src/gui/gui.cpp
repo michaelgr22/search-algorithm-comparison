@@ -1,5 +1,7 @@
 #include "gui.h"
 
+#include "pixel_map.h"
+
 sf::Color Gui::map_fieldvalue_color(FieldValue field_value) {
   switch (field_value) {
   case 1:
@@ -17,33 +19,38 @@ sf::Color Gui::map_fieldvalue_color(FieldValue field_value) {
   }
 }
 
-void Gui::set_color_of_pixel(int x, int y, sf::Color color) {
+void Gui::set_color_of_pixel(std::vector<sf::Uint8> &pixel_map, int x, int y,
+                             sf::Color color) {
   int flippedY = map->height - 1 - y;               // Flip row index
   int pixelIndex = (flippedY * map->width + x) * 4; // Offset in 1D array
 
-  pixels[pixelIndex] = color.r;
-  pixels[pixelIndex + 1] = color.g;
-  pixels[pixelIndex + 2] = color.b;
-  pixels[pixelIndex + 3] = color.a;
+  pixel_map[pixelIndex] = color.r;
+  pixel_map[pixelIndex + 1] = color.g;
+  pixel_map[pixelIndex + 2] = color.b;
+  pixel_map[pixelIndex + 3] = color.a;
 }
 
-void Gui::simulate_search_path() {
+std::vector<sf::Uint8> Gui::create_map_pixel_array() {
+  std::vector<sf::Uint8> pixel_map;
   for (int y = 0; y < map->height; ++y) {
     for (int x = 0; x < map->width; ++x) {
       sf::Color color = map_fieldvalue_color(map->get_layout()[x][y]);
-      set_color_of_pixel(x, y, color);
+      set_color_of_pixel(pixel_map, x, y, color);
     }
   }
+  return pixel_map;
+}
+
+void Gui::simulate_search_path() {
+  PixelMap pixel_map = PixelMap(map);
 
   sf::Texture texture;
   texture.create(map->width, map->height);
-  texture.update(pixels.data());
+  texture.update(pixel_map.get_pixel_array().data());
 
   sf::Sprite sprite(texture);
-  sprite.setScale(scale_factor, scale_factor); // Scale up by 10x
-  sf::RenderWindow window(
-      sf::VideoMode(map->width * scale_factor, map->height * scale_factor),
-      "Map");
+  sprite.setScale(2, 2); // Scale up by 10x
+  sf::RenderWindow window(sf::VideoMode(width_res, height_res), "Map");
 
   // --- Timing Setup ---
   sf::Clock clock;                                    // Measures elapsed time
@@ -66,11 +73,11 @@ void Gui::simulate_search_path() {
     if (goal_node && search_did_not_update_counter > 10) {
       std::shared_ptr<Node> current_node = goal_node;
       while (current_node) {
-        set_color_of_pixel(current_node->state.x, current_node->state.y,
-                           sf::Color::Red);
+        pixel_map.set_color_of_pixel(current_node->state.x,
+                                     current_node->state.y, sf::Color::Red);
         current_node = current_node->parent;
       }
-      texture.update(pixels.data());
+      texture.update(pixel_map.get_pixel_array().data());
     }
 
     // show search exploration
@@ -81,9 +88,9 @@ void Gui::simulate_search_path() {
       sf::Color color = sf::Color::Blue;
 
       if (node) {
-        set_color_of_pixel(node->state.x, node->state.y, color);
+        pixel_map.set_color_of_pixel(node->state.x, node->state.y, color);
 
-        texture.update(pixels.data());
+        texture.update(pixel_map.get_pixel_array().data());
       } else {
         search_did_not_update_counter++;
       }
