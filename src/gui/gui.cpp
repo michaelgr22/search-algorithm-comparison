@@ -1,55 +1,30 @@
 #include "gui.h"
 
 #include "pixel_map.h"
+#include "pixel_map_widget.h"
+#include <memory>
+#include <vector>
 
-sf::Color Gui::map_fieldvalue_color(FieldValue field_value) {
-  switch (field_value) {
-  case 1:
-    return sf::Color::White;
-  case 2:
-    return sf::Color::Green;
-  case 3:
-    return sf::Color::Black;
-  case 4:
-    return sf::Color::Blue;
-  case 5:
-    return sf::Color::Red;
-  default:
-    return sf::Color::Yellow;
+void Gui::simulate_search_path(
+    std::vector<SearchAlgorithm *> algorithms_to_simulate) {
+
+  const float map_scale = 2.4;
+  const int padding = 20;
+
+  std::vector<std::unique_ptr<PixelMap>> pixel_maps(3);
+  std::vector<std::unique_ptr<PixelMapWidget>> pixel_widgets(3);
+  const std::vector<float> widget_x_positions = {
+      padding, map->width * map_scale + padding * 2,
+      map->width * map_scale * 2 + padding * 3};
+  const float y_position_widgets = 20.0;
+
+  for (int i = 0; i < algorithms_to_simulate.size(); i++) {
+    pixel_maps[i] = std::make_unique<PixelMap>(map);
+    pixel_widgets[i] = std::make_unique<PixelMapWidget>(
+        pixel_maps[i]->get_pixel_array(), map_scale, map_scale,
+        widget_x_positions[i], y_position_widgets, map->width, map->height);
   }
-}
 
-void Gui::set_color_of_pixel(std::vector<sf::Uint8> &pixel_map, int x, int y,
-                             sf::Color color) {
-  int flippedY = map->height - 1 - y;               // Flip row index
-  int pixelIndex = (flippedY * map->width + x) * 4; // Offset in 1D array
-
-  pixel_map[pixelIndex] = color.r;
-  pixel_map[pixelIndex + 1] = color.g;
-  pixel_map[pixelIndex + 2] = color.b;
-  pixel_map[pixelIndex + 3] = color.a;
-}
-
-std::vector<sf::Uint8> Gui::create_map_pixel_array() {
-  std::vector<sf::Uint8> pixel_map;
-  for (int y = 0; y < map->height; ++y) {
-    for (int x = 0; x < map->width; ++x) {
-      sf::Color color = map_fieldvalue_color(map->get_layout()[x][y]);
-      set_color_of_pixel(pixel_map, x, y, color);
-    }
-  }
-  return pixel_map;
-}
-
-void Gui::simulate_search_path() {
-  PixelMap pixel_map = PixelMap(map);
-
-  sf::Texture texture;
-  texture.create(map->width, map->height);
-  texture.update(pixel_map.get_pixel_array().data());
-
-  sf::Sprite sprite(texture);
-  sprite.setScale(2, 2); // Scale up by 10x
   sf::RenderWindow window(sf::VideoMode(width_res, height_res), "Map");
 
   // --- Timing Setup ---
@@ -58,7 +33,7 @@ void Gui::simulate_search_path() {
   const sf::Time timePerUpdate = sf::seconds(0.025f); // How often to update
 
   // needed that we know when we can show the final path
-  int search_did_not_update_counter = 0;
+  std::vector<int> search_did_not_update_counter = {0, 0, 0};
 
   while (window.isOpen()) {
     timeSinceLastUpdate += clock.restart();
@@ -69,34 +44,42 @@ void Gui::simulate_search_path() {
         window.close();
 
     // show final path
-    std::shared_ptr<Node> goal_node = search_algorithm->goal_node();
-    if (goal_node && search_did_not_update_counter > 10) {
-      std::shared_ptr<Node> current_node = goal_node;
-      while (current_node) {
-        pixel_map.set_color_of_pixel(current_node->state.x,
-                                     current_node->state.y, sf::Color::Red);
-        current_node = current_node->parent;
+    for (int i = 0; i < algorithms_to_simulate.size(); i++) {
+      std::shared_ptr<Node> goal_node = algorithms_to_simulate[i]->goal_node();
+      if (goal_node && search_did_not_update_counter[i] > 10) {
+        std::shared_ptr<Node> current_node = goal_node;
+        while (current_node) {
+          pixel_maps[i]->set_color_of_pixel(
+              current_node->state.x, current_node->state.y, sf::Color::Red);
+          current_node = current_node->parent;
+        }
+        pixel_widgets[i]->update(pixel_maps[i]->get_pixel_array());
       }
-      texture.update(pixel_map.get_pixel_array().data());
     }
 
     // show search exploration
     if (timeSinceLastUpdate >= timePerUpdate) {
       timeSinceLastUpdate -= timePerUpdate;
 
-      std::shared_ptr<Node> node = search_algorithm->pop_node();
-      sf::Color color = sf::Color::Blue;
+      for (int i = 0; i < algorithms_to_simulate.size(); i++) {
+        std::shared_ptr<Node> node = algorithms_to_simulate[i]->pop_node();
+        sf::Color color = sf::Color::Blue;
 
-      if (node) {
-        pixel_map.set_color_of_pixel(node->state.x, node->state.y, color);
+        if (node) {
+          pixel_maps[i]->set_color_of_pixel(node->state.x, node->state.y,
+                                            color);
 
-        texture.update(pixel_map.get_pixel_array().data());
-      } else {
-        search_did_not_update_counter++;
+          pixel_widgets[i]->update(pixel_maps[i]->get_pixel_array());
+        } else {
+          search_did_not_update_counter[i]++;
+        }
       }
     }
-    window.clear();
-    window.draw(sprite);
+
+    window.clear(sf::Color(128, 128, 128));
+    for (const auto &widget : pixel_widgets) {
+      window.draw(widget->get_sprite());
+    }
     window.display();
   }
 }

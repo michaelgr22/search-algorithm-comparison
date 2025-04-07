@@ -15,23 +15,11 @@ private:
   const int height_res = 1080;
 
   Map *map;
-  SearchAlgorithm *search_algorithm;
-  int scale_factor;
-
-  // std::vector<sf::Uint8> pixels;
-
-  sf::Color map_fieldvalue_color(FieldValue field_value);
-  void set_color_of_pixel(std::vector<sf::Uint8> &pixel_map, int x, int y,
-                          sf::Color color);
-  std::vector<sf::Uint8> create_map_pixel_array();
 
 public:
-  Gui(Map *map, SearchAlgorithm *search_algorithm, int scale_factor)
-      : map(map), search_algorithm(search_algorithm),
-        scale_factor(scale_factor) {
-    // pixels.resize(map->width * map->height * 4);
-  }
+  Gui(Map *map) : map(map) {}
 
-  void simulate_search_path();
+  void
+  simulate_search_path(std::vector<SearchAlgorithm *> algorithms_to_simulate);
 };
 #endif

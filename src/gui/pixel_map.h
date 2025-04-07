@@ -6,12 +6,13 @@
 
 class PixelMap {
 private:
-  const int width;
-  const int height;
   Map *map;
   std::vector<sf::Uint8> pixel_array;
 
 public:
+  const int width;
+  const int height;
+
   sf::Color map_fieldvalue_color(FieldValue field_value) {
     switch (field_value) {
     case 1:
@@ -49,7 +50,7 @@ public:
     }
   }
 
-  std::vector<sf::Uint8> get_pixel_array() { return pixel_array; }
+  std::vector<sf::Uint8> get_pixel_array() const { return pixel_array; }
 };
 
 #endif
