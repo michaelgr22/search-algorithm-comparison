@@ -33,7 +33,7 @@ public:
     texture.update(data.data());
   }
 
-  sf::Sprite get_sprite() const { return sprite; }
+  sf::Sprite get_drawable() const { return sprite; }
 };
 
 #endif

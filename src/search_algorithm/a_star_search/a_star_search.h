@@ -9,6 +9,8 @@ public:
   double evaluation_function(std::shared_ptr<Node> node) override {
     return (node->get_path_cost() + node->get_heuristic());
   }
+
+  std::string get_name() const override { return "A* Search"; }
 };
 
 #endif
