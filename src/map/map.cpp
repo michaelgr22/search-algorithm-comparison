@@ -28,6 +28,10 @@ std::vector<Coordinate> Map::expand_node(Coordinate node) {
   // check if coordinate is valid
   directions.erase(std::remove_if(directions.begin(), directions.end(),
                                   [this](Coordinate c) {
+                                    if (c.x >= width || c.x < 0 ||
+                                        c.y >= height || c.y < 0) {
+                                      return true;
+                                    }
                                     return layout[c.x][c.y] == BORDER ||
                                            layout[c.x][c.y] == OBSTACLE;
                                   }),

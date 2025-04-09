@@ -7,7 +7,7 @@
 class GreedyBestFirstSearch : public BestFirstSearch {
 public:
   double evaluation_function(std::shared_ptr<Node> node) override {
-    return node->heuristic;
+    return node->get_heuristic();
   }
 };
 

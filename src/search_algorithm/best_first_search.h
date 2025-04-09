@@ -44,10 +44,9 @@ public:
         frontier(cmp);
     std::vector<std::shared_ptr<Node>> reached;
 
-    std::shared_ptr<Node> node = std::make_shared<Node>();
-    node->state = map->get_start();
-    node->heuristic = node->state.l2_distance(map->get_goal());
-    node->path_cost = 0;
+    std::shared_ptr<Node> node = std::make_shared<Node>(
+        map->get_start(), nullptr,
+        map->get_start().l2_distance(map->get_goal()), 0);
 
     frontier.push(node);
     reached.push_back(node);
@@ -59,40 +58,34 @@ public:
 
       node = frontier.top();
       frontier.pop();
-      std::cout << "Node State:" << node->state.x << " " << node->state.y
-                << std::endl;
+      std::cout << "Node State:" << node->get_state().x << " "
+                << node->get_state().y << std::endl;
 
       // for gui
       std::lock_guard<std::mutex> lock(data_queue_mutex);
       data_queue.push(node);
 
-      if (node->state == map->get_goal()) {
+      if (node->get_state() == map->get_goal()) {
         goal = node;
         return node;
       }
 
-      for (const Coordinate &c : map->expand_node(node->state)) {
-        std::shared_ptr<Node> child = std::make_shared<Node>();
-        child->state = c;
-        std::cout << "child State:" << child->state.x << " " << child->state.y
-                  << std::endl;
-        child->parent = node;
-        child->heuristic = child->state.l2_distance(map->get_goal());
-        std::cout << "child heuristic:" << child->heuristic << std::endl;
-        std::cout << "child heuristic:" << child->heuristic << std::endl;
-        child->path_cost = child->parent->path_cost + 1;
+      for (const Coordinate &c : map->expand_node(node->get_state())) {
+        std::shared_ptr<Node> child = std::make_shared<Node>(
+            c, node, c.l2_distance(map->get_goal()), node->get_path_cost() + 1);
 
         auto it = std::find_if(
             reached.begin(), reached.end(),
             [&child](const std::shared_ptr<Node> &n) { return *n == *child; });
 
-        // check if child exists in reached
+        // check if child exists not in reached
         if (it == reached.end()) {
           reached.push_back(child);
           frontier.push(child);
-          //
-        } else if (child->path_cost < it->get()->path_cost) {
-          *it = child;
+          // if in reached compare path costs
+        } else if (child->get_path_cost() < it->get()->get_path_cost()) {
+          (*it)->update_node(child->get_state(), child->get_parent(),
+                             child->get_heuristic(), child->get_path_cost());
           frontier.push(child);
         }
       }

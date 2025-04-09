@@ -18,7 +18,7 @@ public:
     return Coordinate(x + other.x, y + other.y);
   }
 
-  double l2_distance(const Coordinate &other) {
+  double l2_distance(const Coordinate &other) const {
     int x_diff = x - other.x;
     int y_diff = y - other.y;
     return std::sqrt(y_diff * y_diff + x_diff * x_diff);
